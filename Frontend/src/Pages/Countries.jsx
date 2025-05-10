@@ -30,12 +30,20 @@ export default function Countries() {
     dispatch(fetchCountries());
   }, [dispatch]);
 
-  // Extract region from URL query params on initial load
+  // Extract filters from URL query params on initial load
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const region = searchParams.get('region');
+    const language = searchParams.get('language');
+    
     if (region) {
       setRegionFilter(region);
+    }
+    if (language) {
+      setLanguageFilter(language);
+    }
+    
+    if (region || language) {
       setSearchTriggered(true);
     }
   }, [location.search]);
@@ -68,6 +76,19 @@ export default function Countries() {
     }
   };
 
+  const updateURLParams = () => {
+    const searchParams = new URLSearchParams();
+    
+    if (regionFilter) {
+      searchParams.set('region', regionFilter);
+    }
+    if (languageFilter) {
+      searchParams.set('language', languageFilter);
+    }
+    
+    navigate(`/countries?${searchParams.toString()}`);
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
     setRegionFilter('');
@@ -81,6 +102,7 @@ export default function Countries() {
     setRegionFilter(previousFilters.regionFilter);
     setLanguageFilter(previousFilters.languageFilter);
     setSearchTriggered(previousFilters.searchTriggered);
+    updateURLParams();
   };
 
   const filteredCountries = useMemo(() => {
@@ -176,12 +198,15 @@ export default function Countries() {
               value={regionFilter}
               onChange={(e) => {
                 setRegionFilter(e.target.value);
-                // Update URL when region changes
+                // Update URL with both filters
+                const searchParams = new URLSearchParams();
                 if (e.target.value) {
-                  navigate(`/countries?region=${encodeURIComponent(e.target.value)}`);
-                } else {
-                  navigate('/countries');
+                  searchParams.set('region', e.target.value);
                 }
+                if (languageFilter) {
+                  searchParams.set('language', languageFilter);
+                }
+                navigate(`/countries?${searchParams.toString()}`);
               }}
               className="appearance-none pl-4 pr-10 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white"
             >
@@ -203,7 +228,18 @@ export default function Countries() {
           <div className="relative">
             <select
               value={languageFilter}
-              onChange={(e) => setLanguageFilter(e.target.value)}
+              onChange={(e) => {
+                setLanguageFilter(e.target.value);
+                // Update URL with both filters
+                const searchParams = new URLSearchParams();
+                if (regionFilter) {
+                  searchParams.set('region', regionFilter);
+                }
+                if (e.target.value) {
+                  searchParams.set('language', e.target.value);
+                }
+                navigate(`/countries?${searchParams.toString()}`);
+              }}
               className="appearance-none pl-4 pr-10 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white"
             >
               <option value="">All Languages</option>
